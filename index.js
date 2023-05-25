@@ -282,7 +282,7 @@ function animate() {
         }
     }
 }
-
+//play
 animate();
 
 window.addEventListener('keydown', (event) => {
