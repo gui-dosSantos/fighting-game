@@ -69,27 +69,32 @@ function decreaseTimer() {
 }
 
 function determineSprite(player) {
-    if(!player.canJump){
-        if(player.velocity.y < 0){
-            player.totalFrames = player.sprites.jump.totalFrames
-            if(player.frame >= player.sprites.jump.totalFrames){
-                player.frame = 0
-            }
-            player.image = player.sprites.jump.image
-        } else {
-            player.totalFrames = player.sprites.fall.totalFrames
-            if(player.frame >= player.sprites.fall.totalFrames){
-                player.frame = 0
-            }
-            player.image = player.sprites.fall.image
-        }
+    let currentFrame;
+    if(player.faceRight) {
+        currentFrame = player.sprites.right;
     } else {
-        if(player.velocity.x === 0) {
-            player.totalFrames = player.sprites.idle.totalFrames
-            player.image = player.sprites.idle.image
+        currentFrame = player.sprites.left;
+    }
+    if(player.isAttacking) {
+        currentFrame = currentFrame.attack1; 
+    } else {
+        if(player.canJump){
+            if(player.velocity.x === 0) {
+                currentFrame = currentFrame.idle; 
+            } else {
+                currentFrame = currentFrame.run; 
+            }
         } else {
-            player.totalFrames = player.sprites.run.totalFrames
-            player.image = player.sprites.run.image
+            if(player.velocity.y < 0){
+                currentFrame = currentFrame.jump; 
+            } else {
+                currentFrame = currentFrame.fall; 
+            }
         }
+    }
+    player.totalFrames = currentFrame.totalFrames;
+    player.image = currentFrame.image
+    if(player.frame >= currentFrame.totalFrames){
+        player.frame = 0
     }
 }

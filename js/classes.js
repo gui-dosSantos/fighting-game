@@ -24,15 +24,15 @@ class Sprite {
 
     draw() {
         c.drawImage(
-            this.image,
-            (this.image.width / this.totalFrames) * this.frame,
-            0,
-            this.image.width / this.totalFrames,
-            this.image.height,      
-            this.position.x - this.offset.x, 
-            this.position.y - this.offset.y, 
-            (this.image.width / this.totalFrames) * this.scale, 
-            this.image.height * this.scale)
+            this.image,                                             //the image
+            (this.image.width / this.totalFrames) * this.frame,     //determines the x-axis point of the cut
+            0,                                                      //y-axis cut
+            this.image.width / this.totalFrames,                    //x-axis size of the cut
+            this.image.height,                                      //height of the cut
+            this.position.x - this.offset.x,                        //position of the drawn image on the x-axis
+            this.position.y - this.offset.y,                        // y-axis
+            (this.image.width / this.totalFrames) * this.scale,     //size on the x-axis
+            this.image.height * this.scale)                         //size on the y-axis
     }
 
     update() {
@@ -70,15 +70,23 @@ class Fighter extends Sprite {
         this.health = 100;
         this.canJump 
         this.canAttack = true
+        this.canHit = true
         this.frame = 0
         this.framesElapsed = 0
         this.framesHold = 10
         this.sprites = sprites
+        this.faceRight = true
+        
 
-        for(const sprite in this.sprites){
-            this.sprites[sprite].image = new Image();
-            this.sprites[sprite].image.src = this.sprites[sprite].imageSrc
+        for(const sprite in this.sprites.right){
+            this.sprites.right[sprite].image = new Image();
+            this.sprites.right[sprite].image.src = this.sprites.right[sprite].imageSrc
         }
+        for(const sprite in this.sprites.left){
+            this.sprites.left[sprite].image = new Image();
+            this.sprites.left[sprite].image.src = this.sprites.left[sprite].imageSrc
+        }
+
         // this.lastKey
     }
 
@@ -137,12 +145,16 @@ class Fighter extends Sprite {
         if(this.canAttack) {
             this.isAttacking = true;
             this.canAttack = false;
+            this.frame = 0;
+            this.framesHold = 4
             setTimeout(() => {
             this.isAttacking = false;
-            }, 100)
+            this.framesHold = 10
+            }, 150)
             setTimeout(() => {
             this.canAttack = true;
-            }, 500);
+            this.canHit = true;
+            }, 400);
         }
     }
 }
