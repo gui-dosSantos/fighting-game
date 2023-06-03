@@ -12,7 +12,7 @@ class Sprite {
     }
 
     animateFrames() {
-        if(this.framesElapsed % this.framesHold === 0){
+        if(this.framesElapsed % this.framesHold === 0 && !this.isAttacking){
             if(this.frame < this.totalFrames - 1){
                 this.frame++
             } else {
@@ -143,17 +143,20 @@ class Fighter extends Sprite {
     attack() {
         //if statement prevents multiple attacks in sequence, preventing them from stacking an absurd amount of damage
         if(this.canAttack) {
+            this.totalFrames = this.faceRight ? this.sprites.right.attack1.totalFrames : this.sprites.left.attack1.totalFrames
             this.isAttacking = true;
             this.canAttack = false;
             this.frame = 0;
-            this.framesHold = 4
+            let animationInterval = setInterval(() => {
+                this.frame++;
+            }, 150/this.totalFrames)
             setTimeout(() => {
             this.isAttacking = false;
-            this.framesHold = 10
+            clearInterval(animationInterval)
             }, 150)
             setTimeout(() => {
             this.canAttack = true;
-            this.canHit = true;
+            this.canHit = true
             }, 400);
         }
     }

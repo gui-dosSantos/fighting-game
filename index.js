@@ -207,18 +207,17 @@ function animate() {
     determineSprite(enemy);
 
     //player attack collision
-    if(rectangularCollision({rectangle1: player, rectangle2: enemy}) && player.isAttacking) {  
-        if(gameRunning && player.canHit){
-            player.canHit = false;
+    if(rectangularCollision({rectangle1: player, rectangle2: enemy}) && player.isAttacking && player.canHit) {  
+        if(gameRunning){
+            player.canHit = false
             enemy.health -= 10;
             document.querySelector('#enemyHealth').style.width = `${enemy.health}%`
         }
     }
 
     //enemy attack collision
-    if(rectangularCollision({rectangle1: enemy, rectangle2: player}) && enemy.isAttacking) {
-            enemy.isAttacking = false;
-            if(gameRunning && enemy.canHit){
+    if(rectangularCollision({rectangle1: enemy, rectangle2: player}) && enemy.isAttacking && enemy.canHit) {
+            if(gameRunning){
                 enemy.canHit = false
                 player.health -= 10;
                 document.querySelector('#playerHealth').style.width = `${player.health}%`
