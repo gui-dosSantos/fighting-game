@@ -12,7 +12,7 @@ class Sprite {
     }
 
     animateFrames() {
-        if(this.framesElapsed % this.framesHold === 0 && !this.isAttacking){
+        if(this.framesElapsed % this.framesHold === 0 && !this.isAttacking && !this.tookHit && this.isAlive){
             if(this.frame < this.totalFrames - 1){
                 this.frame++
             } else {
@@ -51,7 +51,7 @@ class Fighter extends Sprite {
             offset
         })
         this.velocity = velocity  // players velocity on the x and y axes
-        this.height = 150; 
+        this.height = 120; 
         this.width = 50;
         this.attackBox = { //determines the attackbox`s position and size
             position: {
@@ -62,7 +62,7 @@ class Fighter extends Sprite {
                 x: 0,
                 y: 0
             },
-            width: 100,
+            width: 210,
             height: 50
         }
         this.color = color; 
@@ -76,6 +76,9 @@ class Fighter extends Sprite {
         this.framesHold = 10
         this.sprites = sprites
         this.faceRight = true
+        this.tookHit = false
+        this.canMove = true
+        this.isAlive = true
         
 
         for(const sprite in this.sprites.right){
@@ -90,22 +93,11 @@ class Fighter extends Sprite {
         // this.lastKey
     }
 
-    // draw() {
-    //     //draws the player
-    //     c.fillStyle = this.color;
-    //     c.fillRect(this.position.x, this.position.y, this.width, this.height);
-    //     //draw the attackbox
-    //     if(this.isAttacking){
-    //         c.fillStyle = 'green'
-    //         c.fillRect(this.attackBox.position.x, this.attackBox.position.y, this.attackBox.width, this.attackBox.height)
-    //     }
-    // }
-
     update() {
         this.draw();
         this.animateFrames();
         this.attackBox.position.x = this.position.x + this.attackBox.offset.x;
-        this.attackBox.position.y = this.position.y;
+        this.attackBox.position.y = this.position.y + 40;
         this.position.y += this.velocity.y;
 
         //deals with horizontal movement and prevents the player from going out of bounds on the x-axis
@@ -117,14 +109,16 @@ class Fighter extends Sprite {
             this.position.x = canvas.width - this.width;
         } else if(horizontalPlayerCollision()){
             this.velocity.x = 0; 
-        } else {
+        } else if(this.canMove){
             this.position.x += this.velocity.x
         }
 
         //deals with vertical movement and prevents the player from going out of bounds on the y-axis
         if(this.position.y + this.height + this.velocity.y >= floor){
-            this.velocity.y = 0;
-            this.position.y = floor - this.height;
+            if(this.isAlive){
+                this.velocity.y = 0;
+                this.position.y = floor - this.height;
+            }
         } else if(verticalPlayerCollision()){
             this.position.y -= this.velocity.y
             this.velocity.y = 0
@@ -135,29 +129,67 @@ class Fighter extends Sprite {
 
     jump() {
         //if statement prevents mid-air jumps
-        if(this.canJump){
+        if(this.canJump && this.canMove){
             this.velocity.y = -20;
         }
     }
 
     attack() {
-        //if statement prevents multiple attacks in sequence, preventing them from stacking an absurd amount of damage
+        //if statement prevents multiple attacks in sequence
         if(this.canAttack) {
-            this.totalFrames = this.faceRight ? this.sprites.right.attack1.totalFrames : this.sprites.left.attack1.totalFrames
             this.isAttacking = true;
             this.canAttack = false;
             this.frame = 0;
+            determineSprite(this)
             let animationInterval = setInterval(() => {
                 this.frame++;
             }, 150/this.totalFrames)
             setTimeout(() => {
-            this.isAttacking = false;
-            clearInterval(animationInterval)
+                this.isAttacking = false;
+                clearInterval(animationInterval)
+                this.frame = 0;
             }, 150)
             setTimeout(() => {
-            this.canAttack = true;
-            this.canHit = true
+                this.canAttack = true;
+                this.canHit = true
             }, 400);
         }
+    }
+
+    takeHit() {
+        this.health -= 11
+        this.canAttack = false;
+        this.frame = 0
+        this.tookHit = true;
+        determineSprite(this);
+        let animationInterval = setInterval(() => {
+            this.frame++;
+        }, 250/this.totalFrames)
+        setTimeout(() => {
+            this.tookHit = false
+            this.canAttack = true
+            clearInterval(animationInterval)
+            if(this.health <= 0){
+                this.die()
+            }
+        }, 230)
+    }
+
+    die() {
+        this.frame = 0
+        this.canAttack = false;
+        this.isAlive = false;
+        this.canMove = false;
+        determineSprite(this)
+        let animationInterval = setInterval(() => {
+            this.frame++;
+        }, 500/this.totalFrames)
+        setTimeout(() => {
+            clearInterval(animationInterval)
+            this.frame = this.totalFrames - 1
+            this.position.y += 130
+            this.offset.y += 130
+        }, 480)
+        
     }
 }

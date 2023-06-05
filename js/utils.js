@@ -55,7 +55,7 @@ function gameOver({player, enemy, timerId}) {
 }
 
 //controls the timer on the top of the screen
-let timer = 7;
+let timer = 60;
 let timerId;
 function decreaseTimer() {
     if(timer > 0) {
@@ -75,10 +75,13 @@ function determineSprite(player) {
     } else {
         currentFrame = player.sprites.left;
     }
-    if(player.isAttacking) {
-        currentFrame = currentFrame.attack1; 
-    } else {
-        if(player.canJump){
+
+    if(player.isAlive){
+        if(player.tookHit){
+            currentFrame = currentFrame.takeHit
+        } else if(player.isAttacking) {
+                currentFrame = currentFrame.attack1; 
+        } else if(player.canJump){
             if(player.velocity.x === 0) {
                 currentFrame = currentFrame.idle; 
             } else {
@@ -91,6 +94,8 @@ function determineSprite(player) {
                 currentFrame = currentFrame.fall; 
             }
         }
+    } else {
+        currentFrame = currentFrame.death
     }
     player.totalFrames = currentFrame.totalFrames;
     player.image = currentFrame.image

@@ -58,8 +58,8 @@ const player = new Fighter({
     imageSrc: "./img/samurai/faceRight/Idle.png",
     scale: 2.3,
     offset: {
-        x: 200,
-        y: 132
+        x: 205,
+        y: 162
     },
     sprites: {
         right: {
@@ -81,6 +81,14 @@ const player = new Fighter({
             },
             attack1: {
                 imageSrc: "./img/samurai/faceRight/Attack1.png",
+                totalFrames: 6
+            },
+            takeHit: {
+                imageSrc: "./img/samurai/faceRight/Take Hit.png",
+                totalFrames: 4
+            },
+            death: {
+                imageSrc: "./img/samurai/faceRight/Death.png",
                 totalFrames: 6
             }
         }, 
@@ -104,6 +112,14 @@ const player = new Fighter({
             attack1: {
                 imageSrc: "./img/samurai/faceLeft/Attack1.png",
                 totalFrames: 6
+            },
+            takeHit: {
+                imageSrc: "./img/samurai/faceLeft/Take Hit.png",
+                totalFrames: 4
+            },
+            death: {
+                imageSrc: "./img/samurai/faceLeft/Death.png",
+                totalFrames: 6
             }
         }
     }
@@ -123,7 +139,7 @@ const enemy = new Fighter({
     scale: 2.3,
     offset: {
         x: 200,
-        y: 147
+        y: 176
     },
     sprites: {
         right: {  
@@ -146,6 +162,14 @@ const enemy = new Fighter({
             attack1: {
                 imageSrc: "./img/kenji/faceRight/Attack1.png",
                 totalFrames: 4
+            },
+            takeHit: {
+                imageSrc: "./img/kenji/faceRight/Take hit.png",
+                totalFrames: 3
+            },
+            death: {
+                imageSrc: "./img/kenji/faceRight/Death.png",
+                totalFrames: 7
             }
         },
         left: {  
@@ -168,6 +192,14 @@ const enemy = new Fighter({
             attack1: {
                 imageSrc: "./img/kenji/faceLeft/Attack1.png",
                 totalFrames: 4
+            },
+            takeHit: {
+                imageSrc: "./img/kenji/faceLeft/Take hit.png",
+                totalFrames: 3
+            },
+            death: {
+                imageSrc: "./img/kenji/faceLeft/Death.png",
+                totalFrames: 7
             }
         }
     }
@@ -183,6 +215,8 @@ function animate() {
     c.fillRect(0, 0, canvas.width, canvas.height); //re-renders the canvas background
     background.update(); //renders the background
     shop.update(); //renders the shop
+    c.fillStyle = 'rgba(255, 255, 255, 0.1)'
+    c.fillRect(0, 0, canvas.width, canvas.height)
     player.update(); //renders the player
     enemy.update(); //renders the enemy
 
@@ -194,7 +228,9 @@ function animate() {
     } else if(keys.a.pressed) {
         player.velocity.x = -5;
     }
-    determineSprite(player)
+    if(player.isAlive){
+        determineSprite(player)
+    }
 
     //enemy movement
     if((keys.arrowLeft.pressed && keys.arrowRight.pressed) || (!keys.arrowLeft.pressed && !keys.arrowRight.pressed)){
@@ -204,24 +240,39 @@ function animate() {
     } else if(keys.arrowLeft.pressed) {
         enemy.velocity.x = -5;
     }
-    determineSprite(enemy);
+    if(enemy.isAlive){
+        determineSprite(enemy);
+    }
 
     //player attack collision
-    if(rectangularCollision({rectangle1: player, rectangle2: enemy}) && player.isAttacking && player.canHit) {  
-        if(gameRunning){
+    if(
+        rectangularCollision({rectangle1: player, rectangle2: enemy}) && 
+        player.isAttacking && 
+        player.canHit && 
+        gameRunning && 
+        player.frame === 4
+    ) {  
             player.canHit = false
-            enemy.health -= 10;
-            document.querySelector('#enemyHealth').style.width = `${enemy.health}%`
-        }
+            enemy.takeHit()
+            gsap.to('#enemyHealth', {
+                width: `${enemy.health}%`
+            })
     }
 
     //enemy attack collision
-    if(rectangularCollision({rectangle1: enemy, rectangle2: player}) && enemy.isAttacking && enemy.canHit) {
-            if(gameRunning){
-                enemy.canHit = false
-                player.health -= 10;
-                document.querySelector('#playerHealth').style.width = `${player.health}%`
-            }
+    if(
+        rectangularCollision({rectangle1: enemy, rectangle2: player}) && 
+        enemy.isAttacking && 
+        enemy.canHit && 
+        gameRunning && 
+        enemy.frame === 2
+    ) {
+            enemy.canHit = false
+            player.takeHit()
+            gsap.to('#playerHealth', {
+                width: `${player.health}%`
+            })
+            // document.querySelector('#playerHealth').style.width = `${player.health}%`
     }
 
     //decides whether the players can jump or not
@@ -238,19 +289,19 @@ function animate() {
 
     //decides the direction that the player is facing depending on the opponent's location
     if(player.position.x > enemy.position.x) {
-        player.attackBox.offset.x = -50;
+        player.attackBox.offset.x = -160;
         enemy.attackBox.offset.x = 0;
         player.faceRight = false;
         enemy.faceRight = true;
     } else {
         player.attackBox.offset.x = 0;
-        enemy.attackBox.offset.x = -50;
+        enemy.attackBox.offset.x = -160;
         player.faceRight = true;
         enemy.faceRight = false;
     }
 
     //game over by health reaching 0
-    if(player.health === 0 || enemy.health === 0){
+    if(player.health <= 0 || enemy.health <= 0){
         if(gameRunning){
             gameOver({player, enemy, timerId});
         }
@@ -282,7 +333,7 @@ window.addEventListener('keydown', (event) => {
         case 'ArrowUp':
             enemy.jump()
             break;
-        case 'Control':
+        case 'Enter':
             enemy.attack();
             break;
     }
