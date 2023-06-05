@@ -272,7 +272,6 @@ function animate() {
             gsap.to('#playerHealth', {
                 width: `${player.health}%`
             })
-            // document.querySelector('#playerHealth').style.width = `${player.health}%`
     }
 
     //decides whether the players can jump or not
