@@ -8,11 +8,50 @@
             box-sizing: border-box;
             font-family: 'Press Start 2P', cursive;
         }
+  
+        text {
+            fill: white;
+            stroke: black;
+            stroke-width: 1;
+        }
     </style>
 </head>
 <body>
     <div style="position: relative; display: inline-block;">
-        <div style="position: absolute; display: flex; width: 100%; align-items: center; padding: 20px">
+        <!-- Start Screen -->
+        <div id="start" style="position: absolute; left: 50%; top: 5%; transform: translate(-50%, 0); color: #fff; width: 100%;"> 
+            <!-- Game Title -->
+            <h1>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 100">
+                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">Samurai Game</text>
+                </svg>
+            </h1>
+            <div id="instructions" style="display: flex; width: 100%; height: 300px;">
+                <!-- Player Instructions -->
+                <div id="player-instructions" class="instructions" style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+                    <img src="./img/keycaps/playerKeycaps.png" width="177" height="174"/>
+                </div>
+                <!-- Game Instructions -->
+                <div id="game-instructions" style="width: 70%; height: 100%; text-align: center; align-items: center; justify-content: center; display: flex; flex-direction: column;">
+                    <h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="300" height="1.5em" viewBox="0 0 300 40">
+                            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">Press</text>
+                        </svg>
+                    </h2>
+                    <canvas id="enter"></canvas>
+                    <h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="300" height="1.5em" viewBox="0 0 300 40">
+                            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">to start</text>
+                        </svg>
+                    </h2>
+                </div>
+                <!-- Enemy Instructions -->
+                <div id="enemy-instructions" class="instructions" style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; margin-top: 25px;">
+                    <img src="./img/keycaps/enemyKeycaps.png" width="177" height="219"/>
+                </div>
+            </div>
+        </div>
+        <div id="hud" style="position: absolute; display: none; width: 100%; align-items: center; padding: 20px">
             <!-- Player health -->
             <div style="position: relative; height: 30px; width: 100%; background-color: red; display: flex; justify-content: right; border-left: 4px solid white; border-top: 4px solid white; border-bottom: 4px solid white">
                 <div id="playerHealth" style="background-color: #CA8A04; width: 100%; height: 100%"></div>
@@ -24,8 +63,26 @@
                 <div id="enemyHealth" style="background-color: #CA8A04; width: 100%; height: 100%"></div>
             </div>
         </div>
-        <div id="displayText" style="position: absolute; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; color: white"></div>
-        <canvas></canvas>
+        <!-- GameOver Instructions -->
+        <div id="gameOver" style="position: absolute; width: 100%; height: 80%; display: flex; justify-content: end; align-items: center; flex-direction: column; color: white; display: none;">
+            <h1>
+                <svg xmlns="http://www.w3.org/2000/svg" width="600" height="1.5em" viewBox="0 0 600 40">
+                    <text id="displayText" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"></text>
+                </svg>
+            </h1>
+            <h2>
+                <svg xmlns="http://www.w3.org/2000/svg" width="300" height="1.5em" viewBox="0 0 300 40">
+                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">Press</text>
+                </svg>
+            </h2>
+            <canvas id="backspace"></canvas>
+            <h2>
+                <svg xmlns="http://www.w3.org/2000/svg" width="300" height="1.5em" viewBox="0 0 300 40">
+                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">to restart</text>
+                </svg>
+            </h2>
+        </div>
+        <canvas id="game"></canvas>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js" integrity="sha512-cOH8ndwGgPo+K7pTvMrqYbmI8u8k6Sho3js0gOqVWTmQMlLIi6TbqGWRTpf1ga8ci9H3iPsvDLr4X7xwhC/+DQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

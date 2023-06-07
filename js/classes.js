@@ -1,5 +1,5 @@
 class Sprite {
-    constructor({position, imageSrc, scale = 1, totalFrames = 1, offset = { x: 0, y: 0 }}) {
+    constructor({position, imageSrc, scale = 1, totalFrames = 1, offset = { x: 0, y: 0 }, context}) {
         this.position = position //stores the players position on the x and y axes
         this.image = new Image();
         this.image.src = imageSrc;
@@ -9,30 +9,58 @@ class Sprite {
         this.framesElapsed = 0
         this.framesHold = 10
         this.offset = offset
+        this.context = context
     }
 
+    //determines the animation pace
     animateFrames() {
-        if(this.framesElapsed % this.framesHold === 0 && !this.isAttacking && !this.tookHit && this.isAlive){
+        if(this.framesElapsed % this.framesHold === 0){
             if(this.frame < this.totalFrames - 1){
                 this.frame++
             } else {
                 this.frame = 0;
             }
         }
-        this.framesElapsed++ 
+        this.framesElapsed++
     }
 
     draw() {
-        c.drawImage(
-            this.image,                                             //the image
-            (this.image.width / this.totalFrames) * this.frame,     //determines the x-axis point of the cut
-            0,                                                      //y-axis cut
-            this.image.width / this.totalFrames,                    //x-axis size of the cut
-            this.image.height,                                      //height of the cut
-            this.position.x - this.offset.x,                        //position of the drawn image on the x-axis
-            this.position.y - this.offset.y,                        // y-axis
-            (this.image.width / this.totalFrames) * this.scale,     //size on the x-axis
-            this.image.height * this.scale)                         //size on the y-axis
+        if(this.context === 'c'){
+            c.drawImage(
+                this.image,                                             //the image
+                (this.image.width / this.totalFrames) * this.frame,     //determines the x-axis point of the cut
+                0,                                                      //y-axis cut
+                this.image.width / this.totalFrames,                    //x-axis size of the cut
+                this.image.height,                                      //height of the cut
+                this.position.x - this.offset.x,                        //position of the drawn image on the x-axis
+                this.position.y - this.offset.y,                        // y-axis
+                (this.image.width / this.totalFrames) * this.scale,     //size on the x-axis
+                this.image.height * this.scale)                         //size on the y-axis
+        }
+        if(this.context === 'b'){
+            b.drawImage(
+                this.image,                                             //the image
+                (this.image.width / this.totalFrames) * this.frame,     //determines the x-axis point of the cut
+                0,                                                      //y-axis cut
+                this.image.width / this.totalFrames,                    //x-axis size of the cut
+                this.image.height,                                      //height of the cut
+                this.position.x - this.offset.x,                        //position of the drawn image on the x-axis
+                this.position.y - this.offset.y,                        // y-axis
+                (this.image.width / this.totalFrames) * this.scale,     //size on the x-axis
+                this.image.height * this.scale)                         //size on the y-axis
+        }
+        if(this.context === 'e'){
+            e.drawImage(
+                this.image,                                             //the image
+                (this.image.width / this.totalFrames) * this.frame,     //determines the x-axis point of the cut
+                0,                                                      //y-axis cut
+                this.image.width / this.totalFrames,                    //x-axis size of the cut
+                this.image.height,                                      //height of the cut
+                this.position.x - this.offset.x,                        //position of the drawn image on the x-axis
+                this.position.y - this.offset.y,                        // y-axis
+                (this.image.width / this.totalFrames) * this.scale,     //size on the x-axis
+                this.image.height * this.scale)                         //size on the y-axis
+        }
     }
 
     update() {
@@ -42,13 +70,14 @@ class Sprite {
 }
 
 class Fighter extends Sprite {
-    constructor({ position, velocity, color = 'red', imageSrc, scale = 1, totalFrames = 1, offset = { x: 0, y: 0 }, sprites }) {
+    constructor({ position, velocity, color = 'red', imageSrc, scale = 1, totalFrames = 1, offset = { x: 0, y: 0 }, sprites, context }) {
         super({
             position,
             imageSrc,
             scale,
             totalFrames,
-            offset
+            offset,
+            context
         })
         this.velocity = velocity  // players velocity on the x and y axes
         this.height = 120; 
@@ -79,6 +108,17 @@ class Fighter extends Sprite {
         this.tookHit = false
         this.canMove = true
         this.isAlive = true
+        this.attackColldown;
+        this.defaultValues = {
+            position: {
+                x: position.x,
+                y: position.y
+            },
+            offset: {
+                x: offset.x,
+                y: offset.y
+            }
+        }
         
 
         for(const sprite in this.sprites.right){
@@ -91,6 +131,19 @@ class Fighter extends Sprite {
         }
 
         // this.lastKey
+    }
+
+    //since the fighters have time dependent attacking, "took hit" and death animations instead of frame dependent, I had to modify the animateFrames function
+    //I should probably make all animations time dependent, but I cba tbh as it's a project exclusively for learning, not an actual comercial project
+    animateFrames() {
+        if(this.framesElapsed % this.framesHold === 0 && !this.isAttacking && !this.tookHit && this.isAlive){
+            if(this.frame < this.totalFrames - 1){
+                this.frame++
+            } else {
+                this.frame = 0;
+            }
+        }
+        this.framesElapsed++ 
     }
 
     update() {
@@ -115,8 +168,8 @@ class Fighter extends Sprite {
 
         //deals with vertical movement and prevents the player from going out of bounds on the y-axis
         if(this.position.y + this.height + this.velocity.y >= floor){
+            this.velocity.y = 0;
             if(this.isAlive){
-                this.velocity.y = 0;
                 this.position.y = floor - this.height;
             }
         } else if(verticalPlayerCollision()){
@@ -149,7 +202,7 @@ class Fighter extends Sprite {
                 clearInterval(animationInterval)
                 this.frame = 0;
             }, 150)
-            setTimeout(() => {
+            this.attackColldown = setTimeout(() => {
                 this.canAttack = true;
                 this.canHit = true
             }, 400);
@@ -176,6 +229,7 @@ class Fighter extends Sprite {
     }
 
     die() {
+        clearTimeout(this.attackColldown)
         this.frame = 0
         this.canAttack = false;
         this.isAlive = false;
@@ -190,6 +244,16 @@ class Fighter extends Sprite {
             this.position.y += 130
             this.offset.y += 130
         }, 480)
-        
+    }
+
+    restart() {
+        this.health = 100;
+        this.position.x = this.defaultValues.position.x
+        this.position.y = this.defaultValues.position.y
+        this.offset.x = this.defaultValues.offset.x
+        this.offset.y = this.defaultValues.offset.y
+        this.canAttack = true;
+        this.isAlive = true;
+        this.canMove = true;
     }
 }

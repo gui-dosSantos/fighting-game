@@ -41,10 +41,17 @@ function verticalPlayerCollision() {
 }
 
 //triggers gameover by time expiration
-let gameRunning = true;
+let gameRunning = false;
+let gameState
 function gameOver({player, enemy, timerId}) {
     gameRunning = false
+    gameState = 'end'
     clearTimeout(timerId);
+    buttonAnimations = setInterval(() => {
+        b.clearRect(0, 0, backspace.width, backspace.height)
+        backspaceBtn.update();
+    }, 50)
+    document.getElementById('gameOver').style.display = 'flex'
     if(player.health === enemy.health) {
         document.querySelector('#displayText').innerHTML = 'Tie'
     } else if(player.health > enemy.health) {
@@ -54,7 +61,7 @@ function gameOver({player, enemy, timerId}) {
     }
 }
 
-//controls the timer on the top of the screen
+//controls the timer on the top of the screen and call gameOver if it runs out
 let timer = 60;
 let timerId;
 function decreaseTimer() {
@@ -68,6 +75,7 @@ function decreaseTimer() {
     }
 }
 
+//determines what is the right sprite for the players on each frame(probably not the ideal approach, but I cba changing the whole code to a "switchSprite" approach instead)
 function determineSprite(player) {
     let currentFrame;
     if(player.faceRight) {

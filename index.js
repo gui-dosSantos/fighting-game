@@ -1,13 +1,24 @@
-const canvas = document.querySelector('canvas'); 
+const canvas = document.querySelector('#game'); //setting up the main canvas
 const c = canvas.getContext('2d');
-const gravity = 0.7;
-
 canvas.width = 1024;
 canvas.height = 576;
 
-const floor = 500;
+const enter = document.getElementById('enter') //canvas for the enter button at the "start" screen
+const e = enter.getContext('2d')
+enter.width = 117
+enter.height = 108
 
-c.fillRect(0, 0, canvas.width, canvas.height) //paints the background
+const backspace = document.getElementById('backspace')  //canvas for the backspace button at the "gameover" screen
+const b = backspace.getContext('2d')
+backspace.width = 165
+backspace.height = 48
+
+const gravity = 0.7;
+const hud = document.getElementById('hud')
+
+const floor = 500; //since the floor on the background is not on the very bottom of the canvas, this const is passing the real floor position on the y-axis
+
+// c.fillRect(0, 0, canvas.width, canvas.height) //paints the background
 
 //maps the keys being pressed
 const keys = {
@@ -32,6 +43,39 @@ const background = new Sprite({
         y: 0
     },
     imageSrc: "./img/background.png",
+    context: 'c'
+})
+
+//draws the ENTER button on the "start" screen
+const enterBtn = new Sprite({
+    position: {
+        x: 0,
+        y: 0
+    },
+    imageSrc: "./img/keycaps/ENTER.png",
+    totalFrames: 3,
+    scale: 3,
+    offset: {
+        x: 1,
+        y: 0
+    },
+    context: 'e'
+})
+
+//draws the backspace button on the "gameover" screen
+const backspaceBtn = new Sprite({
+    position: {
+        x: 0,
+        y: 0
+    },
+    imageSrc: "./img/keycaps/BACKSPACE.png",
+    totalFrames: 2,
+    scale: 3,
+    offset: {
+        x: 0,
+        y: 0
+    },
+    context: 'b'
 })
 
 //draws the animated shop
@@ -42,14 +86,47 @@ const shop = new Sprite({
     },
     imageSrc: "./img/shop.png",
     scale: 2.97,
-    totalFrames: 6
+    totalFrames: 6,
+    context: 'c'
+})
+
+//draws the samurai sprite at the "start" screen without creating a Fighter so that it stays in place on the y-axis without having to compensate for the gravity
+const samuraiStart = new Sprite({
+    position: {
+        x: 158,
+        y: 100
+    },
+    imageSrc: "./img/samurai/faceRight/Idle.png",
+    scale: 2.3,
+    offset: {
+        x: 205,
+        y: 162
+    },
+    totalFrames: 8,
+    context: 'c'
+})
+
+//draws the kenji sprite at the "start" screen without creating a Fighter so that it stays in place on the y-axis without having to compensate for the gravity
+const kenjiStart = new Sprite({
+    position: {
+        x: 815,
+        y: 100
+    },
+    imageSrc: "./img/kenji/faceLeft/Idle.png",
+    scale: 2.3,
+    offset: {
+        x: 200,
+        y: 176
+    },
+    totalFrames: 4,
+    context: 'c'
 })
 
 //creates the player
 const player = new Fighter({
     position: {
-        x: 200,
-        y: 0
+        x: 158,
+        y: 100
     },
     velocity: {
         x: 0,
@@ -122,14 +199,15 @@ const player = new Fighter({
                 totalFrames: 6
             }
         }
-    }
+    },
+    context: 'c'
 });
 
 //creates the enemy
 const enemy = new Fighter({
     position: {
-        x: 800,
-        y: 0
+        x: 815,
+        y: 100
     },
     velocity: {
         x: 0,
@@ -202,15 +280,14 @@ const enemy = new Fighter({
                 totalFrames: 7
             }
         }
-    }
+    },
+    context: 'c'
 });
 
-
-decreaseTimer();
-
+let animationFrame;
 //makes the game run
 function animate() {
-    window.requestAnimationFrame(animate);//makes the function call itself
+    animationFrame = window.requestAnimationFrame(animate);//makes the function call itself and stores the animation id on a global variable so that it can be killed when the game restarts
     c.fillStyle = 'black'
     c.fillRect(0, 0, canvas.width, canvas.height); //re-renders the canvas background
     background.update(); //renders the background
@@ -228,7 +305,7 @@ function animate() {
     } else if(keys.a.pressed) {
         player.velocity.x = -5;
     }
-    if(player.isAlive){
+    if(player.isAlive){ //avoids having a dead player changing the sprite orientation
         determineSprite(player)
     }
 
@@ -240,7 +317,7 @@ function animate() {
     } else if(keys.arrowLeft.pressed) {
         enemy.velocity.x = -5;
     }
-    if(enemy.isAlive){
+    if(enemy.isAlive){ //avoids having a dead player changing the sprite orientation
         determineSprite(enemy);
     }
 
@@ -252,7 +329,7 @@ function animate() {
         gameRunning && 
         player.frame === 4
     ) {  
-            player.canHit = false
+            player.canHit = false //adds a cooldown between attacks
             enemy.takeHit()
             gsap.to('#enemyHealth', {
                 width: `${enemy.health}%`
@@ -267,7 +344,7 @@ function animate() {
         gameRunning && 
         enemy.frame === 2
     ) {
-            enemy.canHit = false
+            enemy.canHit = false //adds a cooldown between attacks
             player.takeHit()
             gsap.to('#playerHealth', {
                 width: `${player.health}%`
@@ -306,8 +383,6 @@ function animate() {
         }
     }
 }
-//play
-animate();
 
 window.addEventListener('keydown', (event) => {
     switch(event.key) {
@@ -333,7 +408,18 @@ window.addEventListener('keydown', (event) => {
             enemy.jump()
             break;
         case 'Enter':
-            enemy.attack();
+            if(gameRunning || gameState === 'end'){
+                enemy.attack();
+            } else {
+                gameRunning = true;//start the game
+            }
+            break;
+        case 'Backspace':
+            if(gameState === 'end'){
+                gameState = 'start'
+                cancelAnimationFrame(animationFrame)
+                restart();
+            }
             break;
     }
 })
@@ -353,3 +439,48 @@ window.addEventListener('keyup', (event) => {
             break;
     }
 })
+
+function runGame() {
+    if(gameRunning){
+        clearInterval(buttonAnimations)
+        document.getElementById('start').style.display = 'none'
+        hud.style.display = 'flex'
+        decreaseTimer();
+        animate();
+    } else {
+        requestAnimationFrame(runGame)
+        background.update();
+        shop.update();
+        c.fillStyle = 'rgba(0, 0, 0, 0.5)'
+        c.fillRect(0, 0, canvas.width, canvas.height)
+        samuraiStart.update();
+        kenjiStart.update()
+    }
+}
+
+
+let buttonAnimations;
+function start() {
+    clearInterval(buttonAnimations)
+    buttonAnimations = setInterval(() => {
+        e.clearRect(0, 0, enter.width, enter.height)
+        enterBtn.update();
+    }, 50)
+    runGame()
+}
+
+
+function restart(){
+    document.getElementById('gameOver').style.display = 'none'
+    timer = 60
+    document.getElementById('hud').style.display = 'none'
+    document.getElementById('start').style.display = 'inline'
+    document.getElementById('playerHealth').style.width = '100%'
+    document.getElementById('enemyHealth').style.width = '100%'
+    clearInterval(buttonAnimations)
+    player.restart();
+    enemy.restart();
+    start();
+}
+
+start()
